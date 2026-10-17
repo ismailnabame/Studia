@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Studia</title>
+<style>
+:root{--bg:#faf8f4;--card:#fff;--ink:#1d1b17;--mute:#6f6a60;--line:#e4dfd5;--accent:#2f5d50;--on:#fff;--ok:#1f7a4a;--okbg:#e3f3ea;--bad:#b3261e;--badbg:#fbe7e5;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root{--bg:#14130f;--card:#1e1c17;--ink:#f1ede4;--mute:#a09a8d;--line:#35322a;--accent:#7cc3a9;--on:#10231c;--ok:#74d6a0;--okbg:#17301f;--bad:#ff8a80;--badbg:#3a1c1a}}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:560px;margin:0 auto;padding:16px}
+h1{font-family:Georgia,serif;font-size:26px;margin:8px 0 4px}h2{font-size:18px;margin:0 0 8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 0}
+.mute{color:var(--mute);font-size:14px}
+input,select{width:100%;padding:12px;margin:6px 0 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit}
+button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:12px 14px}
+button.p{background:var(--accent);color:var(--on);border-color:var(--accent);width:100%;font-weight:600}
+button:disabled{opacity:.5;cursor:default}
+.opt{display:block;width:100%;text-align:left;margin:8px 0}
+.opt.ok{background:var(--okbg);border-color:var(--ok)}.opt.bad{background:var(--badbg);border-color:var(--bad)}
+.bar{display:flex;gap:8px;margin:8px 0;align-items:center}.bar .sp{flex:1}
+.tabs button.on{background:var(--accent);color:var(--on);border-color:var(--accent)}
+.err{color:var(--bad);font-size:14px;min-height:20px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.num{font-size:28px;font-weight:700}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+// ---- CONFIG: fill these in ----
+const SUPABASE_URL = "https://YOUR-PROJECT.supabase.co";
+const SUPABASE_ANON_KEY = "YOUR-ANON-KEY";
+const QUIZ_FUNCTION = "generate-quiz"; // name of your edge function that writes a row into quiz_items
+// --------------------------------
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const app = document.getElementById("app");
+const GOALS = ["Exam Prep", "University Course", "Self Learning"];
+let user = null, profile = null, tab = "practice";
+
+function h(tag, props = {}, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else if (k === "class") e.className = v;
+    else e[k] = v;
+  }
+  for (const c of kids.flat()) if (c != null) e.append(c);
+  return e;
+}
+const show = (...nodes) => { app.replaceChildren(...nodes); };
+const msg = (e) => (e && (e.message || e.error_description)) || "Something went wrong.";
+
+// ---------- auth ----------
+function authView() {
+  const email = h("input", { type: "email", placeholder: "Email", autocomplete: "email" });
+  const pass = h("input", { type: "password", placeholder: "Password (6+ characters)", autocomplete: "current-password" });
+  const err = h("div", { class: "err" });
+  const go = async (signUp) => {
+    err.textContent = "";
+    const creds = { email: email.value.trim(), password: pass.value };
+    const { data, error } = signUp ? await sb.auth.signUp(creds) : await sb.auth.signInWithPassword(creds);
+    if (error) { err.textContent = msg(error); return; }
+    if (!data.session) { err.textContent = "Check your email to confirm your account, then sign in."; return; }
+    user = data.session.user; load();
+  };
+  show(h("h1", {}, "Studia"), h("p", { class: "mute" }, "Study anything. Practice a little every day."),
+    h("div", { class: "card" }, email, pass, err,
+      h("button", { class: "p", onclick: () => go(false) }, "Sign in"),
+      h("p", { class: "mute" }, "New here? ", h("a", { href: "#", onclick: (e) => { e.preventDefault(); go(true); } }, "Create an account with these details"))));
+}
+
+// ---------- profile ----------
+async function load() {
+  const { data, error } = await sb.from("profiles").select("study_topic,study_goal,is_admin").eq("id", user.id).single();
+  if (error) { show(h("div", { class: "card err" }, msg(error))); return; }
+  profile = data;
+  profile.study_topic ? shell() : setupView();
+}
+
+function setupView() {
+  const topic = h("input", { placeholder: "e.g. Organic Chemistry, JAMB Physics, Python", maxLength: 80, value: profile.study_topic || "" });
+  const goal = h("select", {}, GOALS.map((g) => h("option", { value: g, selected: g === profile.study_goal }, g)));
+  const err = h("div", { class: "err" });
+  const save = async () => {
+    const t = topic.value.trim();
+    if (t.length < 2) { err.textContent = "Topic needs at least 2 characters."; return; }
+    const { error } = await sb.from("profiles").update({ study_topic: t, study_goal: goal.value }).eq("id", user.id);
+    if (error) { err.textContent = msg(error); return; }
+    profile.study_topic = t; profile.study_goal = goal.value; shell();
+  };
+  show(h("h1", {}, "What are you studying?"),
+    h("div", { class: "card" }, h("label", {}, "Topic"), topic, h("label", {}, "Goal"), goal, err,
+      h("button", { class: "p", onclick: save }, "Save")));
+}
+
+// ---------- shell ----------
+function shell() {
+  const body = h("div");
+  const tabBtn = (id, label) => h("button", { class: tab === id ? "on" : "", onclick: () => { tab = id; shell(); } }, label);
+  show(
+    h("div", { class: "bar" }, h("h1", { class: "sp" }, "Studia"),
+      h("button", { onclick: async () => { await sb.auth.signOut(); user = profile = null; authView(); } }, "Sign out")),
+    h("div", { class: "bar tabs" }, tabBtn("practice", "Practice"), profile.is_admin ? tabBtn("admin", "Admin") : null),
+    body);
+  tab === "admin" && profile.is_admin ? adminView(body) : practiceView(body);
+}
+
+// ---------- practice ----------
+async function practiceView(body) {
+  const topic = profile.study_topic;
+  const statsBox = h("p", { class: "mute" });
+  const box = h("div");
+  body.append(
+    h("div", { class: "card" }, h("h2", {}, topic), h("div", { class: "mute" }, profile.study_goal || ""), statsBox,
+      h("button", { onclick: setupView }, "Change topic")), box);
+
+  const refreshStats = async () => {
+    const { data } = await sb.rpc("quiz_stats", { p_topic: topic });
+    if (data) statsBox.textContent = `You’ve answered ${data.attempted}, with ${data.correct} correct.`;
+  };
+  refreshStats();
+
+  const letters = ["A", "B", "C", "D"];
+  const optionList = (o) => Array.isArray(o) ? o.map((t, i) => [letters[i], t]) : Object.entries(o);
+
+  const next = async () => {
+    box.replaceChildren(h("p", { class: "mute" }, "Loading…"));
+    let { data: q, error } = await sb.rpc("open_quiz", { p_topic: topic });
+    if (error) { box.replaceChildren(h("div", { class: "err" }, msg(error))); return; }
+    if (!q) {
+      const err = h("div", { class: "err" });
+      const btn = h("button", { class: "p" }, "Get a practice question");
+      btn.onclick = async () => {
+        btn.disabled = true; err.textContent = "Writing your question…";
+        const r = await sb.functions.invoke(QUIZ_FUNCTION, { body: { topic, goal: profile.study_goal } });
+        if (r.error) {
+          let m = msg(r.error);
+          try { const j = await r.error.context.json(); m = j.error || j.message || m; } catch (_) {}
+          err.textContent = m; btn.disabled = false; return;
+        }
+        next();
+      };
+      box.replaceChildren(h("div", { class: "card" }, h("p", {}, "No open question right now."), err, btn));
+      return;
+    }
+    const opts = optionList(q.options);
+    const buttons = [];
+    const result = h("div");
+    const pick = async (letter) => {
+      buttons.forEach((b) => (b.disabled = true));
+      const { data: r, error: e } = await sb.rpc("answer_quiz", { p_id: q.id, p_choice: letter });
+      if (e) { result.replaceChildren(h("div", { class: "err" }, msg(e))); buttons.forEach((b) => (b.disabled = false)); return; }
+      buttons.forEach((b) => {
+        if (b.dataset.l === r.correct_option) b.classList.add("ok");
+        else if (b.dataset.l === r.chosen_option) b.classList.add("bad");
+      });
+      result.replaceChildren(
+        h("p", {}, h("strong", {}, r.is_correct ? "Correct. " : `Not quite. The answer is ${r.correct_option}. `), r.explanation),
+        h("button", { class: "p", onclick: next }, "Next question"));
+      refreshStats();
+    };
+    opts.forEach(([l, t]) => buttons.push(h("button", { class: "opt", onclick: () => pick(l) }, `${l}. ${t}`)));
+    buttons.forEach((b, i) => (b.dataset.l = opts[i][0]));
+    box.replaceChildren(h("div", { class: "card" }, h("h2", {}, q.question), buttons, result));
+  };
+  next();
+}
+
+// ---------- admin ----------
+async function adminView(body) {
+  const grid = h("div", { class: "grid" }, h("p", { class: "mute" }, "Loading…"));
+  body.append(h("div", { class: "card" }, h("h2", {}, "Overview"), grid));
+  const { data, error } = await sb.rpc("admin_stats");
+  if (error) { grid.replaceChildren(h("div", { class: "err" }, msg(error))); return; }
+  const cell = (label, n) => h("div", { class: "card" }, h("div", { class: "num" }, String(n)), h("div", { class: "mute" }, label));
+  grid.replaceChildren(cell("Users", data.users), cell("Pro users", data.pro), cell("Questions written", data.quizzes), cell("Questions answered", data.answered));
+}
+
+// ---------- start ----------
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) { user = session.user; load(); } else authView();
+})();
+</script>
+</body>
+</html>

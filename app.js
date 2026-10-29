@@ -448,23 +448,11 @@ function renderPractice(q) {
 }
 // ---------- payment ----------
 async function startPayment(kind) {
-  if (payBusy) return;
-  payBusy = true; document.body.classList.add("paying"); showToast("Opening secure checkout… please wait.");
-  try {
-    const { data: { session } } = await sb.auth.getSession();
-    if (!session) { payBusy = false; document.body.classList.remove("paying"); sessionExpired(); return; }
-    const res = await fetch(PAYSTACK_INIT_URL, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ plan: kind === "annual" ? "annual" : "monthly" }),
-    });
-    if (!res.ok) throw new Error("init");
-    const data = await res.json();
-    if (!data.url) throw new Error("nourl");
-    if (data.reference) store.set("studia_ref", data.reference);
-    window.location.href = data.url; return; // stay "busy" while the page leaves
-  } catch (_) { showToast("Could not open checkout. Check your connection and try again."); }
-  payBusy = false; document.body.classList.remove("paying");
+  if (kind === "monthly") {
+    window.location.href = "https://paystack.shop/pay/studia-pro"; 
+  } else if (kind === "annual") {
+    window.location.href = "https://paystack.shop/pay/studia-annual"; 
+  }
 }
 window.addEventListener("pageshow", (e) => { if (e.persisted) { payBusy = false; document.body.classList.remove("paying"); } });
 

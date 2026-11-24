@@ -1,1 +1,839 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#080d19">
+  <meta name="description" content="Studia — Your personal AI learning companion.">
+  <title>Studia — AI Learning Companion</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css?v=3">
+</head>
+
+<body>
+
+  <!-- Authentication -->
+  <section id="authScreen" class="auth-screen">
+    <div class="auth-container">
+      <div class="auth-brand">
+        <div class="brand-icon">S</div>
+        <span>studia</span>
+      </div>
+
+      <div class="auth-card">
+        <div class="auth-heading">
+          <span class="eyebrow">YOUR PERSONAL AI TUTOR</span>
+          <h1>Learn smarter.<br><span>Go further.</span></h1>
+          <p>Your personal learning companion, available whenever you need it.</p>
+        </div>
+
+        <div class="auth-tabs">
+          <button class="auth-tab active" id="loginTab" type="button">Sign in</button>
+          <button class="auth-tab" id="signupTab" type="button">Create account</button>
+        </div>
+
+        <form id="loginForm">
+          <div class="form-group">
+            <label for="loginEmail">Email address</label>
+            <input id="loginEmail" type="email" placeholder="you@example.com" autocomplete="email" required>
+          </div>
+
+          <div class="form-group">
+            <label for="loginPassword">Password</label>
+            <input id="loginPassword" type="password" placeholder="Enter your password" autocomplete="current-password" required>
+          </div>
+
+          <button type="button" id="forgotPasswordBtn" class="text-button">Forgot password?</button>
+          <button type="submit" class="primary-btn auth-submit">Sign in <span>→</span></button>
+        </form>
+
+        <form id="signupForm" class="hidden">
+          <div class="form-group">
+            <label for="signupName">Your name</label>
+            <input id="signupName" type="text" placeholder="Enter your name" autocomplete="name" required>
+          </div>
+
+          <div class="form-group">
+            <label for="signupEmail">Email address</label>
+            <input id="signupEmail" type="email" placeholder="you@example.com" autocomplete="email" required>
+          </div>
+
+          <div class="form-group">
+            <label for="signupPassword">Create password</label>
+            <input id="signupPassword" type="password" placeholder="At least 8 characters" autocomplete="new-password" required>
+          </div>
+
+          <button type="submit" class="primary-btn auth-submit">Create account <span>→</span></button>
+        </form>
+
+        <div class="auth-footer">
+          By continuing, you agree to our terms and privacy policy.
+        </div>
+      </div>
+
+      <p class="auth-bottom">Built to make learning feel effortless.</p>
+    </div>
+  </section>
+
+  <!-- Password reset -->
+  <section id="resetPasswordScreen" class="overlay-screen hidden">
+    <div class="modal-card">
+      <button id="closeResetPassword" class="modal-close" type="button">×</button>
+      <div class="modal-icon">✉</div>
+      <h2>Reset your password</h2>
+      <p>Enter your email address and we'll send you a reset link.</p>
+
+      <form id="resetPasswordForm">
+        <div class="form-group">
+          <label for="resetEmail">Email address</label>
+          <input id="resetEmail" type="email" placeholder="you@example.com" required>
+        </div>
+        <button type="submit" class="primary-btn">Send reset link</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Error screen -->
+  <div id="errorScreen" class="error-screen hidden">
+    <div class="error-card">
+      <div class="error-icon">!</div>
+      <h2>Something went wrong</h2>
+      <p id="errorMessage">An unexpected error occurred.</p>
+      <button id="retryBtn" class="primary-btn" type="button">Try again</button>
+    </div>
+  </div>
+
+  <!-- Payment overlay -->
+  <div id="paymentOverlay" class="overlay-screen hidden">
+    <div class="modal-card">
+      <button id="closePayment" class="modal-close" type="button">×</button>
+      <div class="modal-icon">✦</div>
+      <span class="eyebrow">STUDIA PREMIUM</span>
+      <h2>Unlock your full potential</h2>
+      <p>Get more from your learning experience with premium access.</p>
+      <div id="paymentContent"></div>
+    </div>
+  </div>
+
+  <!-- Onboarding -->
+  <section id="onboardingScreen" class="onboarding-screen hidden">
+    <div class="onboarding-container">
+      <div class="onboarding-brand">
+        <div class="brand-icon">S</div>
+        <span>studia</span>
+      </div>
+
+      <div class="onboarding-progress">
+        <span id="onboardingStepText">Step 1 of 3</span>
+        <div class="progress-track">
+          <div id="onboardingProgressBar" class="progress-fill"></div>
+        </div>
+      </div>
+
+      <div id="onboardingContent" class="onboarding-content"></div>
+
+      <div class="onboarding-actions">
+        <button id="onboardingBack" class="secondary-btn" type="button">Back</button>
+        <button id="onboardingNext" class="primary-btn" type="button">Continue <span>→</span></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main application -->
+  <div id="appScreen" class="app-screen hidden">
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-top">
+        <a href="#" class="app-brand">
+          <div class="brand-icon">S</div>
+          <span>studia</span>
+        </a>
+
+        <button id="sidebarClose" class="icon-btn sidebar-close" type="button" aria-label="Close menu">×</button>
+      </div>
+
+      <button id="newChatBtn" class="new-chat-btn" type="button">
+        <span>＋</span> New AI session
+      </button>
+
+      <div class="sidebar-section">
+        <span class="sidebar-label">WORKSPACE</span>
+
+        <nav class="sidebar-nav">
+          <button class="nav-item active" data-tab="home" id="homeTab" type="button">
+            <span class="nav-icon">⌂</span>
+            <span>Overview</span>
+          </button>
+
+          <button class="nav-item" data-tab="practice" id="practiceTab" type="button">
+            <span class="nav-icon">▤</span>
+            <span>Practice</span>
+          </button>
+
+          <button class="nav-item" data-tab="chat" id="chatTab" type="button">
+            <span class="nav-icon">✧</span>
+            <span>AI Tutor</span>
+          </button>
+        </nav>
+      </div>
+
+      <div class="sidebar-section">
+        <span class="sidebar-label">YOUR LEARNING</span>
+
+        <nav class="sidebar-nav">
+          <button class="nav-item" data-tab="progress" id="progressTab" type="button">
+            <span class="nav-icon">↗</span>
+            <span>My progress</span>
+          </button>
+
+          <button class="nav-item" data-tab="pricing" id="pricingTab" type="button">
+            <span class="nav-icon">✦</span>
+            <span>Upgrade plan</span>
+          </button>
+        </nav>
+      </div>
+
+      <div class="sidebar-spacer"></div>
+
+      <div class="sidebar-plan" id="sidebarPlan">
+        <div class="plan-icon">✦</div>
+        <div>
+          <strong>Free plan</strong>
+          <span>Explore your learning potential</span>
+        </div>
+        <button id="sidebarUpgradeBtn" type="button">Upgrade</button>
+      </div>
+
+      <div class="sidebar-user">
+        <div class="user-avatar" id="sidebarAvatar">U</div>
+        <div class="user-details">
+          <strong id="sidebarUserName">User</strong>
+          <span id="sidebarUserEmail">user@example.com</span>
+        </div>
+        <button id="sidebarSettingsBtn" class="icon-btn" type="button" aria-label="Settings">⚙</button>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main-content">
+
+      <!-- Topbar -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button id="menuToggle" class="icon-btn menu-toggle" type="button" aria-label="Open menu">☰</button>
+          <div class="breadcrumb">
+            <span>Workspace</span>
+            <span class="breadcrumb-separator">/</span>
+            <strong id="pageTitle">Overview</strong>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <div class="plan-indicator" id="planIndicator">
+            <span class="status-dot"></span>
+            <span id="planIndicatorText">Free plan</span>
+          </div>
+
+          <button id="notificationsBtn" class="icon-btn" type="button" aria-label="Notifications">♧</button>
+
+          <button id="profileBtn" class="profile-button" type="button">
+            <span class="user-avatar" id="topbarAvatar">U</span>
+            <span id="topbarUserName">User</span>
+            <span class="dropdown-arrow">⌄</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Home -->
+      <section id="homePage" class="page-content active">
+        <div class="welcome-section">
+          <div>
+            <span class="eyebrow">YOUR LEARNING SPACE</span>
+            <h1>Welcome back, <span id="welcomeName">Learner</span> 👋</h1>
+            <p>Ready to make today a productive learning day?</p>
+          </div>
+
+          <div class="welcome-date" id="welcomeDate"></div>
+        </div>
+
+        <div class="hero-card">
+          <div class="hero-content">
+            <span class="hero-tag"><span class="sparkle">✦</span> YOUR AI LEARNING COMPANION</span>
+            <h2>Every great achievement<br>starts with <span>one lesson.</span></h2>
+            <p>Ask questions, explore difficult topics and build confidence at your own pace.</p>
+
+            <div class="hero-actions">
+              <button id="startLearningBtn" class="hero-primary-btn" type="button">Start learning <span>→</span></button>
+              <button id="heroPracticeBtn" class="hero-secondary-btn" type="button">Practice questions</button>
+            </div>
+          </div>
+
+          <div class="hero-visual">
+            <div class="hero-orbit orbit-one"></div>
+            <div class="hero-orbit orbit-two"></div>
+            <div class="hero-glow"></div>
+            <div class="hero-symbol">✦</div>
+            <div class="floating-card floating-card-one">
+              <span>✧</span>
+              <div><strong>AI Tutor</strong><small>Ready to help</small></div>
+            </div>
+            <div class="floating-card floating-card-two">
+              <span>✓</span>
+              <div><strong>Keep growing</strong><small>One step at a time</small></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-top">
+              <span class="stat-icon purple">✧</span>
+              <span class="stat-caption">LEARNING</span>
+            </div>
+            <strong id="totalSessions">0</strong>
+            <span class="stat-label">Study sessions</span>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-top">
+              <span class="stat-icon blue">▤</span>
+              <span class="stat-caption">PRACTICE</span>
+            </div>
+            <strong id="totalQuestions">0</strong>
+            <span class="stat-label">Questions attempted</span>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-top">
+              <span class="stat-icon green">✓</span>
+              <span class="stat-caption">ACCURACY</span>
+            </div>
+            <strong id="accuracyRate">0%</strong>
+            <span class="stat-label">Average accuracy</span>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-top">
+              <span class="stat-icon orange">◷</span>
+              <span class="stat-caption">CONSISTENCY</span>
+            </div>
+            <strong id="studyStreak">0</strong>
+            <span class="stat-label">Day streak</span>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <div class="dashboard-main">
+            <div class="section-heading">
+              <div>
+                <span class="eyebrow">GET STARTED</span>
+                <h2>Continue your journey</h2>
+              </div>
+            </div>
+
+            <div class="action-grid">
+              <button class="action-card" id="homeChatCard" data-tab="chat" type="button">
+                <div class="action-icon purple">✧</div>
+                <div>
+                  <h3>Ask your AI tutor</h3>
+                  <p>Get explanations and answers to your questions.</p>
+                </div>
+                <span class="action-arrow">↗</span>
+              </button>
+
+              <button class="action-card" id="homePracticeCard" data-tab="practice" type="button">
+                <div class="action-icon blue">▤</div>
+                <div>
+                  <h3>Test your knowledge</h3>
+                  <p>Practice questions and discover what you know.</p>
+                </div>
+                <span class="action-arrow">↗</span>
+              </button>
+            </div>
+
+            <div class="section-heading recent-heading">
+              <div>
+                <span class="eyebrow">YOUR ACTIVITY</span>
+                <h2>Recent activity</h2>
+              </div>
+              <button id="viewAllActivity" class="text-button" type="button">View all →</button>
+            </div>
+
+            <div id="recentActivity" class="activity-list">
+              <div class="empty-state">
+                <div class="empty-icon">◷</div>
+                <h3>Your journey starts here</h3>
+                <p>Your recent learning activity will appear here.</p>
+              </div>
+            </div>
+          </div>
+
+          <aside class="dashboard-side">
+            <div class="side-card progress-card">
+              <div class="section-heading">
+                <div>
+                  <span class="eyebrow">YOUR PERFORMANCE</span>
+                  <h3>Learning progress</h3>
+                </div>
+              </div>
+
+              <div class="progress-circle-wrap">
+                <div class="progress-circle" id="progressCircle">
+                  <div class="progress-circle-inner">
+                    <strong id="progressPercentage">0%</strong>
+                    <span>Accuracy</span>
+                  </div>
+                </div>
+              </div>
+
+              <p class="progress-description" id="progressDescription">Start practising to track your progress.</p>
+            </div>
+
+            <div class="side-card tip-card">
+              <div class="tip-icon">✦</div>
+              <span class="eyebrow">STUDIA TIP</span>
+              <h3>Small steps add up.</h3>
+              <p>Consistent study sessions can help you understand and retain what you learn.</p>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- Practice -->
+      <section id="practicePage" class="page-content hidden">
+        <div class="page-heading">
+          <div>
+            <span class="eyebrow">BUILD YOUR CONFIDENCE</span>
+            <h1>Practice</h1>
+            <p>Challenge yourself and strengthen your understanding.</p>
+          </div>
+        </div>
+
+        <div class="practice-layout">
+          <div class="practice-main">
+            <div class="content-card practice-setup" id="practiceSetup">
+              <div class="card-heading">
+                <div class="card-heading-icon blue">▤</div>
+                <div>
+                  <h2>Create a practice session</h2>
+                  <p>Choose what you want to practise.</p>
+                </div>
+              </div>
+
+              <form id="practiceForm">
+                <div class="form-group">
+                  <label for="practiceSubject">Subject</label>
+                  <select id="practiceSubject" required>
+                    <option value="">Select a subject</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="practiceTopic">Topic</label>
+                  <input id="practiceTopic" type="text" placeholder="e.g. Algebra, Biology, Economics">
+                </div>
+
+                <div class="form-group">
+                  <label for="practiceDifficulty">Difficulty</label>
+                  <select id="practiceDifficulty">
+                    <option value="easy">Easy</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="hard">Hard</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="practiceQuestionCount">Number of questions</label>
+                  <select id="practiceQuestionCount">
+                    <option value="5">5 questions</option>
+                    <option value="10" selected>10 questions</option>
+                    <option value="15">15 questions</option>
+                    <option value="20">20 questions</option>
+                  </select>
+                </div>
+
+                <button type="submit" class="primary-btn">Generate questions <span>→</span></button>
+              </form>
+            </div>
+
+            <div id="practiceSession" class="content-card hidden">
+              <div class="practice-session-header">
+                <div>
+                  <span class="eyebrow">PRACTICE SESSION</span>
+                  <h2 id="practiceSessionTitle">Your questions</h2>
+                </div>
+                <span id="practiceQuestionCounter" class="question-counter">Question 1</span>
+              </div>
+
+              <div class="practice-progress-track">
+                <div id="practiceProgressBar" class="progress-fill"></div>
+              </div>
+
+              <div id="practiceQuestionContent" class="practice-question-content"></div>
+
+              <div class="practice-session-actions">
+                <button id="practicePreviousBtn" class="secondary-btn" type="button">Previous</button>
+                <button id="practiceNextBtn" class="primary-btn" type="button">Next question →</button>
+              </div>
+            </div>
+
+            <div id="practiceResults" class="content-card hidden">
+              <div class="results-content">
+                <div class="results-icon">✦</div>
+                <span class="eyebrow">SESSION COMPLETED</span>
+                <h2>Well done!</h2>
+                <p id="practiceResultsMessage">You have completed your practice session.</p>
+
+                <div class="results-score">
+                  <strong id="practiceScore">0%</strong>
+                  <span>Your score</span>
+                </div>
+
+                <div id="practiceResultsDetails"></div>
+
+                <button id="practiceAgainBtn" class="primary-btn" type="button">Practise again</button>
+              </div>
+            </div>
+          </div>
+
+          <aside class="practice-sidebar">
+            <div class="side-card">
+              <span class="eyebrow">PRACTICE TIPS</span>
+              <h3>Learn by doing.</h3>
+              <p>Answer questions without checking your notes first. Review your mistakes to understand where you can improve.</p>
+            </div>
+
+            <div class="side-card">
+              <span class="eyebrow">YOUR ACTIVITY</span>
+              <div class="mini-stat">
+                <strong id="practiceTotalAttempted">0</strong>
+                <span>Questions attempted</span>
+              </div>
+              <div class="mini-stat">
+                <strong id="practiceTotalCorrect">0</strong>
+                <span>Correct answers</span>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- AI Chat -->
+      <section id="chatPage" class="page-content chat-page hidden">
+        <div class="chat-layout">
+          <div class="chat-main">
+            <div class="chat-header">
+              <div class="chat-header-info">
+                <div class="chat-avatar">✦</div>
+                <div>
+                  <h2>Studia AI Tutor</h2>
+                  <span><span class="status-dot"></span> Ready to help you learn</span>
+                </div>
+              </div>
+
+              <div class="chat-header-actions">
+                <button id="clearChatBtn" class="secondary-btn small-btn" type="button">Clear chat</button>
+              </div>
+            </div>
+
+            <div id="chatMessages" class="chat-messages">
+              <div class="chat-welcome">
+                <div class="chat-welcome-icon">✦</div>
+                <span class="eyebrow">YOUR PERSONAL AI TUTOR</span>
+                <h2>What would you like<br>to learn today?</h2>
+                <p>Ask me to explain a concept, solve a problem or help you understand a difficult topic.</p>
+
+                <div class="suggestion-grid">
+                  <button class="suggestion-card" data-prompt="Explain a difficult topic to me in simple terms." type="button">
+                    <span>✧</span>
+                    <strong>Explain a topic</strong>
+                    <small>Make difficult concepts easier</small>
+                  </button>
+
+                  <button class="suggestion-card" data-prompt="Give me a step-by-step solution to a practice problem." type="button">
+                    <span>∑</span>
+                    <strong>Solve a problem</strong>
+                    <small>Understand each step</small>
+                  </button>
+
+                  <button class="suggestion-card" data-prompt="Help me create a study plan for my subjects." type="button">
+                    <span>▤</span>
+                    <strong>Create a study plan</strong>
+                    <small>Organise your learning</small>
+                  </button>
+
+                  <button class="suggestion-card" data-prompt="Quiz me on a topic I am currently studying." type="button">
+                    <span>✓</span>
+                    <strong>Quiz me</strong>
+                    <small>Test your knowledge</small>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="chat-composer-wrap">
+              <form id="chatForm" class="chat-composer">
+                <textarea id="chatInput" rows="1" placeholder="Ask Studia anything..." aria-label="Message your AI tutor"></textarea>
+                <div class="composer-bottom">
+                  <span class="composer-hint">Your learning companion, powered by AI.</span>
+                  <button id="sendChatBtn" type="submit" aria-label="Send message">
+                    <span>↑</span>
+                  </button>
+                </div>
+              </form>
+              <p class="chat-disclaimer">AI can make mistakes. Always review important information.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Progress -->
+      <section id="progressPage" class="page-content hidden">
+        <div class="page-heading">
+          <div>
+            <span class="eyebrow">YOUR GROWTH</span>
+            <h1>My progress</h1>
+            <p>See how far you have come on your learning journey.</p>
+          </div>
+        </div>
+
+        <div class="stats-grid progress-stats">
+          <div class="stat-card">
+            <span class="stat-icon purple">✧</span>
+            <strong id="progressSessions">0</strong>
+            <span class="stat-label">Study sessions</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-icon blue">▤</span>
+            <strong id="progressQuestions">0</strong>
+            <span class="stat-label">Questions answered</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-icon green">✓</span>
+            <strong id="progressAccuracy">0%</strong>
+            <span class="stat-label">Accuracy</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-icon orange">◷</span>
+            <strong id="progressStreak">0</strong>
+            <span class="stat-label">Day streak</span>
+          </div>
+        </div>
+
+        <div class="content-card">
+          <div class="section-heading">
+            <div>
+              <span class="eyebrow">LEARNING HISTORY</span>
+              <h2>Your activity</h2>
+            </div>
+          </div>
+          <div id="progressActivity" class="activity-list">
+            <div class="empty-state">
+              <div class="empty-icon">↗</div>
+              <h3>Your progress will appear here</h3>
+              <p>Complete lessons and practice sessions to build your learning history.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Pricing -->
+      <section id="pricingPage" class="page-content hidden">
+        <div class="pricing-heading">
+          <span class="eyebrow">STUDIA PLANS</span>
+          <h1>Invest in your learning.</h1>
+          <p>Choose the experience that works best for you.</p>
+        </div>
+
+        <div id="pricingPlans" class="pricing-grid">
+          <div class="pricing-card">
+            <span class="pricing-label">STARTER</span>
+            <h2>Free</h2>
+            <p>Get started with your learning journey.</p>
+            <div class="pricing-price">₦0 <span>/ forever</span></div>
+            <ul>
+              <li>✓ Access to basic learning tools</li>
+              <li>✓ Limited AI assistance</li>
+              <li>✓ Practice questions</li>
+            </ul>
+            <button class="secondary-btn" type="button" disabled>Current plan</button>
+          </div>
+
+          <div class="pricing-card featured">
+            <div class="popular-tag">RECOMMENDED</div>
+            <span class="pricing-label">PREMIUM</span>
+            <h2>Learn without limits.</h2>
+            <p>More room to explore, practise and grow.</p>
+            <div id="premiumPrice" class="pricing-price"></div>
+            <ul>
+              <li>✓ Expanded AI learning access</li>
+              <li>✓ More practice sessions</li>
+              <li>✓ Enhanced learning experience</li>
+              <li>✓ Premium features</li>
+            </ul>
+            <button id="upgradePlanBtn" class="primary-btn" type="button">Get Premium <span>→</span></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Settings -->
+      <section id="settingsPage" class="page-content hidden">
+        <div class="page-heading">
+          <div>
+            <span class="eyebrow">PREFERENCES</span>
+            <h1>Settings</h1>
+            <p>Manage your account and learning preferences.</p>
+          </div>
+        </div>
+
+        <div class="settings-layout">
+          <div class="settings-nav">
+            <button class="settings-nav-item active" data-settings-tab="account" type="button">Account</button>
+            <button class="settings-nav-item" data-settings-tab="learning" type="button">Learning preferences</button>
+            <button class="settings-nav-item" data-settings-tab="security" type="button">Security</button>
+          </div>
+
+          <div class="settings-content">
+            <div id="accountSettings" class="settings-panel">
+              <div class="content-card">
+                <h2>Account information</h2>
+                <p>Manage your personal information.</p>
+
+                <form id="profileForm">
+                  <div class="form-group">
+                    <label for="profileName">Full name</label>
+                    <input id="profileName" type="text" placeholder="Your name">
+                  </div>
+
+                  <div class="form-group">
+                    <label for="profileEmail">Email address</label>
+                    <input id="profileEmail" type="email" placeholder="you@example.com" disabled>
+                  </div>
+
+                  <button class="primary-btn" type="submit">Save changes</button>
+                </form>
+              </div>
+            </div>
+
+            <div id="learningSettings" class="settings-panel hidden">
+              <div class="content-card">
+                <h2>Learning preferences</h2>
+                <p>Customise your learning experience.</p>
+                <div id="learningPreferences"></div>
+              </div>
+            </div>
+
+            <div id="securitySettings" class="settings-panel hidden">
+              <div class="content-card">
+                <h2>Security</h2>
+                <p>Manage your account security.</p>
+
+                <button id="changePasswordBtn" class="secondary-btn" type="button">Change password</button>
+                <div class="settings-divider"></div>
+                <button id="logoutBtn" class="danger-btn" type="button">Sign out</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Admin -->
+      <section id="adminPage" class="page-content hidden">
+        <div class="page-heading">
+          <div>
+            <span class="eyebrow">ADMINISTRATION</span>
+            <h1>Admin dashboard</h1>
+            <p>Manage and monitor your Studia application.</p>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-icon purple">♙</span>
+            <strong id="adminTotalUsers">0</strong>
+            <span class="stat-label">Total users</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-icon blue">✧</span>
+            <strong id="adminTotalSessions">0</strong>
+            <span class="stat-label">AI sessions</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-icon green">✦</span>
+            <strong id="adminPremiumUsers">0</strong>
+            <span class="stat-label">Premium users</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-icon orange">▤</span>
+            <strong id="adminTotalQuestions">0</strong>
+            <span class="stat-label">Questions attempted</span>
+          </div>
+        </div>
+
+        <div class="content-card">
+          <div class="section-heading">
+            <div>
+              <span class="eyebrow">USER MANAGEMENT</span>
+              <h2>Users</h2>
+            </div>
+          </div>
+          <div id="adminUsersTable"></div>
+        </div>
+
+        <div class="content-card">
+          <div class="section-heading">
+            <div>
+              <span class="eyebrow">SYSTEM</span>
+              <h2>Application management</h2>
+            </div>
+          </div>
+          <div id="adminSystemContent"></div>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="app-footer">
+        <span>© <span id="currentYear"></span> Studia. Made for curious minds.</span>
+        <span>Learn something new every day. <span class="footer-sparkle">✦</span></span>
+      </footer>
+    </main>
+  </div>
+
+  <!-- General modal -->
+  <div id="modalOverlay" class="overlay-screen hidden">
+    <div class="modal-card" id="modalContent">
+      <button id="modalClose" class="modal-close" type="button" aria-label="Close">×</button>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <!-- Toast notifications -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <!-- Loading overlay -->
+  <div id="loadingOverlay" class="loading-overlay hidden">
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <p id="loadingText">Loading...</p>
+    </div>
+  </div>
+
+  <!-- Offline notice -->
+  <div id="offlineNotice" class="offline-notice hidden">
+    <span class="offline-dot"></span>
+    You are currently offline. Some features may be unavailable.
+  </div>
+
+  <!-- Mobile navigation backdrop -->
+  <div id="sidebarBackdrop" class="sidebar-backdrop hidden"></div>
+
+  <script src="app.js?v=3"></script>
+</body>
+</html>
